@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <base target="_top">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>MentorPal - Tu apoyo inteligente</title>
+  <style>
+    :root {
+      --primary: #3B82F6;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --muted: #64748b;
+      --text: #0f172a;
+      --chip: #f1f5f9;
+      --border: #e2e8f0;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --err: #ef4444;
+      --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+      
+      /* Colores del Mood Meter (RULER) */
+      --mood-red: #e74c3c;    /* Alto energía, desagradable */
+      --mood-yellow: #f1c40f;  /* Alto energía, agradable */
+      --mood-blue: #3498db;    /* Baja energía, desagradable */
+      --mood-green: #27ae60;   /* Baja energía, agradable */
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .wrap { padding: 20px; max-width: 1200px; margin: 0 auto; }
+
+    /* Header */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-bottom: 16px; border-bottom: 1px solid var(--border); margin-bottom: 20px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .robot-logo {
+      width: 40px; height: 40px; background: linear-gradient(135deg, var(--primary) 0%, #2563eb 100%);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: var(--shadow);
+    }
+    .brand-text h1 { font-size: 20px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+    .brand-text .tagline { font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 2px; }
+    .community-badge {
+      padding: 4px 10px; border-radius: 999px; font-size: 11px; background: var(--chip); border: 1px solid var(--border);
+      color: var(--muted); font-weight: 500; transition: all 0.2s;
+    }
+    .version-badge { padding: 4px 10px; border-radius: 999px; font-size: 11px; background: var(--primary); color: white; font-weight: 500; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 8px; margin-bottom: 20px; background: var(--card); padding: 8px; border-radius: 12px; box-shadow: var(--shadow); }
+    .tab {
+      flex: 1; padding: 10px 16px; border-radius: 8px; background: transparent; cursor: pointer; font-size: 13px; font-weight: 500;
+      transition: all 0.2s; color: var(--muted); text-align: center; border: 1px solid transparent;
+    }
+    .tab:hover { background: var(--chip); color: var(--text); }
+    .tab[aria-selected="true"] { background: var(--primary); color: white; box-shadow: var(--shadow); }
+
+    /* Cards */
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; box-shadow: var(--shadow);
+      margin-bottom: 16px; transition: box-shadow 0.2s;
+    }
+    .card:hover { box-shadow: var(--shadow-lg); }
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    }
+    .card-title { font-size: 14px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; }
+
+    /* Botones */
+    .btnPrimary {
+      margin-top: 20px; width: 100%; padding: 12px 20px; border: 0; border-radius: 8px; font-weight: 600; cursor: pointer;
+      background: var(--primary); color: white; font-size: 14px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btnPrimary:hover { background: #2563eb; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(59,130,246,.3); }
+    .btnPrimary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    .btnMini {
+      padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--chip);
+      color: var(--text); font-weight: 600; cursor: pointer; font-size: 12px;
+    }
+    .btnMini:hover { background: #e0e7ff; border-color: var(--primary); }
+
+    /* Inputs */
+    label { display: block; font-size: 12px; color: var(--muted); margin: 12px 0 6px; font-weight: 600; text-transform: uppercase; letter-spacing: .025em; }
+    input, select, textarea {
+      width: 100%; padding: 10px 12px; background: #fff; color: var(--text); border: 1px solid var(--border); border-radius: 8px; outline: none;
+      font-size: 13px; transition: all 0.2s; font-family: inherit;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59,130,246,.1); }
+    input[readonly] { background: #f8fafc; cursor: not-allowed; opacity: .7; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* Chips */
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .chip {
+      background: var(--chip); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 999px;
+      cursor: pointer; font-size: 12px; transition: all 0.2s; font-weight: 500; user-select: none;
+    }
+    .chip:hover { background: #e0e7ff; border-color: var(--primary); transform: translateY(-1px); }
+    .chip[aria-checked="true"] { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 2px 4px rgba(59,130,246,.2); }
+
+    /* Hints */
+    .hint { color: var(--muted); font-size: 11px; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+    .hint.success { color: var(--ok); }
+    .hint.error { color: var(--err); }
+    .hint.warning { color: var(--warn); }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #fff; border: 1px solid var(--border);
+      padding: 12px 20px; border-radius: 8px; display: none; color: var(--text); box-shadow: var(--shadow-lg);
+      animation: slideUp .3s ease; font-weight: 500; min-width: 200px; text-align: center; z-index: 1000;
+    }
+    .toast.success { background: var(--ok); color: #fff; border-color: var(--ok); }
+    .toast.error { background: var(--err); color: #fff; border-color: var(--err); }
+    .toast.warning { background: var(--warn); color: #fff; border-color: var(--warn); }
+    @keyframes slideUp { from { transform: translate(-50%, 100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
+    /* Loading */
+    .loading { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--primary); border-radius: 50%; border-top-color: transparent; animation: spin .8s linear infinite; vertical-align: middle; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Tabla */
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { padding: 10px; border-bottom: 1px solid var(--border); text-align: left; }
+    th { color: var(--muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .025em; background: var(--chip); }
+    tr:hover td { background: var(--chip); }
+
+    /* Risk / Mood Meter */
+    .mood-meter-container {
+      margin-top: 12px;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    
+    .mood-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .mood-quadrant {
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    .mood-quadrant:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    .mood-quadrant.selected {
+      border-color: #333;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+    
+    .mood-quadrant.red {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      color: white;
+    }
+    
+    .mood-quadrant.yellow {
+      background: linear-gradient(135deg, #f1c40f, #f39c12);
+      color: #333;
+    }
+    
+    .mood-quadrant.blue {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white;
+    }
+    
+    .mood-quadrant.green {
+      background: linear-gradient(135deg, #27ae60, #229954);
+      color: white;
+    }
+    
+    .mood-title {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    
+    .mood-emotions {
+      font-size: 12px;
+      opacity: 0.9;
+    }
+    
+    .mood-value {
+      margin-top: 12px;
+      padding: 8px;
+      background: white;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .mood-selected {
+      font-weight: 600;
+      color: var(--text);
+    }
+    
+    .risk-value {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* Security notice */
+    .security-notice {
+      background: #fef3c7; border: 1px solid #fbbf24; color: #92400e; padding: 12px;
+      border-radius: 8px; margin-bottom: 16px; font-size: 12px; display: none; align-items: center; gap: 8px;
+    }
+    .security-notice .icon { font-size: 16px; }
+
+    /* Stats (tarjetas) */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin: 16px 0; }
+    .stat { background: var(--chip); border: 1px solid var(--border); padding: 16px; border-radius: 8px; text-align: center; transition: all 0.2s; }
+    .stat:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .stat-number { font-size: 28px; font-weight: 700; color: var(--primary); line-height: 1; }
+    .stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.025em; }
+
+    /* Categorías */
+    .category-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    
+    .category-chip {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid var(--border);
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    
+    .category-chip:hover {
+      background: var(--chip);
+      transform: translateY(-1px);
+    }
+    
+    .category-chip[aria-selected="true"] {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    @media (max-width: 900px) { .row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Header -->
+    <div class="header">
+      <div class="brand">
+        <div class="robot-logo">🤖</div>
+        <div class="brand-text">
+          <h1>
+            MentorPal
+            <span class="community-badge" id="themeName">Default</span>
+          </h1>
+          <div class="tagline">Tu apoyo inteligente en cada mentoría</div>
+        </div>
+      </div>
+      <div><span class="version-badge">v3.3</span></div>
+    </div>
+
+    <!-- Aviso de seguridad (se puede mostrar según el rol) -->
+    <div class="security-notice" id="securityNotice">
+      <span class="icon">🔒</span>
+      <span>Tus datos están protegidos. Solo puedes ver y editar tus propias sesiones.</span>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab" id="tab-captura-btn" aria-selected="true" onclick="showTab('captura')">📝 Nueva Sesión</div>
+      <div class="tab" id="tab-historial-btn" aria-selected="false" onclick="showTab('historial')">📜 Mi Historial</div>
+      <div class="tab" id="tab-stats-btn" aria-selected="false" onclick="showTab('stats')">📊 Mis Estadísticas</div>
+    </div>
+
+    <!-- TAB: CAPTURA -->
+    <div id="tab-captura">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><span>👤</span> Información del Estudiante</h3>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Matrícula del estudiante *</label>
+            <input id="matricula" placeholder="A00123456 o A01234567" oninput="debouncedLookup()" pattern="[Aa]0[0-9]{6,8}" required>
+            <div class="hint" id="matriculaHint">Formato: A00XXXXXX o A0XXXXXXX</div>
+          </div>
+          <div>
+            <label>Mentor/a responsable *</label>
+            <select id="mentor" required>
+              <option value="">Cargando mentores...</option>
+            </select>
+          </div>
+        </div>
+
+        <label>Nombre completo</label>
+        <input id="nombre" placeholder="Se autocompleta al buscar matrícula" readonly>
+
+        <div class="row">
+          <div>
+            <label>Comunidad</label>
+            <input id="comunidad" placeholder="Detectado automáticamente" readonly>
+          </div>
+          <div>
+            <label>Programa académico</label>
+            <input id="programa" placeholder="Detectado automáticamente" readonly>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><span>📋</span> Detalles de la Sesión</h3>
+        </div>
+        
+        <label>Categoría/Hashtag del caso *</label>
+        <div class="category-chips" id="categorias">
+          <span class="category-chip" data-value="PIN">🆕 PIN (Primeros Ingresos)</span>
+          <span class="category-chip" data-value="CAG">🎓 CAG (Candidatos a Graduación)</span>
+          <span class="category-chip" data-value="Transferencias">🔄 Transferencias</span>
+          <span class="category-chip" data-value="Condicionamiento">⚠️ Condicionamiento Académico</span>
+          <span class="category-chip" data-value="Comites">👥 Comités</span>
+          <span class="category-chip" data-value="Trayectoria">📈 Trayectoria Estudiantil</span>
+          <span class="category-chip" data-value="Otro">📌 Otro</span>
+        </div>
+
+        <label>Tipo de sesión *</label>
+        <select id="tipo" required>
+          <option value="">Selecciona el tipo de sesión...</option>
+          <option>💻 Virtual (Zoom/Teams/Meet)</option>
+          <option>🏢 Presencial (oficina/campus)</option>
+          <option>☎️ Telefónica</option>
+          <option>💬 Chat/WhatsApp (solo seguimientos breves)</option>
+        </select>
+
+        <label>Duración aproximada *</label>
+        <div class="chips" id="duracion">
+          <span class="chip" data-key="15">⚡ 15 min</span>
+          <span class="chip" data-key="16-30">⏰ 16-30 min</span>
+          <span class="chip" data-key="31-45">📅 31-45 min</span>
+          <span class="chip" data-key="46-60">⏳ 46-60 min</span>
+          <span class="chip" data-key="60+">🕐 60+ min</span>
+        </div>
+
+        <label>Dimensiones del bienestar abordadas</label>
+        <div class="chips" id="dimensiones">
+          <span class="chip" data-val="🧠 Intelectual">🧠 Intelectual</span>
+          <span class="chip" data-val="💚 Emocional">💚 Emocional</span>
+          <span class="chip" data-val="👥 Social">👥 Social</span>
+          <span class="chip" data-val="💪 Física">💪 Física</span>
+          <span class="chip" data-val="✨ Espiritual">✨ Espiritual</span>
+          <span class="chip" data-val="💼 Ocupacional">💼 Ocupacional</span>
+          <span class="chip" data-val="💰 Financiera">💰 Financiera</span>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Fecha de la sesión *</label>
+            <input id="fecha" type="date" required>
+          </div>
+          <div>
+            <label>Próxima sesión sugerida</label>
+            <input id="proxima" type="date">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><span>😊</span> Estado Emocional del Estudiante (Mood Meter - RULER)</h3>
+        </div>
+        
+        <div class="mood-meter-container">
+          <div class="mood-grid">
+            <div class="mood-quadrant red" data-mood="red" data-value="8" onclick="selectMood('red', 8)">
+              <div class="mood-title">🔴 Alta Energía - Desagradable</div>
+              <div class="mood-emotions">Enojado • Frustrado • Estresado • Ansioso</div>
+            </div>
+            <div class="mood-quadrant yellow" data-mood="yellow" data-value="3" onclick="selectMood('yellow', 3)">
+              <div class="mood-title">🟡 Alta Energía - Agradable</div>
+              <div class="mood-emotions">Alegre • Emocionado • Optimista • Motivado</div>
+            </div>
+            <div class="mood-quadrant blue" data-mood="blue" data-value="6" onclick="selectMood('blue', 6)">
+              <div class="mood-title">🔵 Baja Energía - Desagradable</div>
+              <div class="mood-emotions">Triste • Deprimido • Aburrido • Agotado</div>
+            </div>
+            <div class="mood-quadrant green" data-mood="green" data-value="2" onclick="selectMood('green', 2)">
+              <div class="mood-title">🟢 Baja Energía - Agradable</div>
+              <div class="mood-emotions">Calmado • Relajado • Sereno • En paz</div>
+            </div>
+          </div>
+          
+          <div class="mood-value">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span class="mood-selected" id="moodSelected">Selecciona el estado emocional observado</span>
+              <span class="risk-value" id="riskValue">Nivel de atención: <strong>5</strong></span>
+            </div>
+            <div id="intensityControl" style="display:none;margin-top:12px;padding:12px;background:#f8f9fa;border-radius:6px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <label style="font-size:12px;color:var(--muted);min-width:70px;">Intensidad:</label>
+                <input type="range" id="moodIntensity" min="1" max="10" value="5" 
+                       oninput="updateRiskLevel()" style="flex:1;">
+                <span id="intensityValue" style="min-width:20px;font-weight:600;">5</span>
+              </div>
+              <div style="font-size:11px;color:var(--muted);margin-top:8px;">
+                Ajusta la intensidad del estado emocional (1=leve, 10=extremo)
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <input type="hidden" id="riesgo" value="5">
+        <input type="hidden" id="moodState" value="">
+        <div class="hint">El estado emocional ayuda a determinar el nivel de atención requerida (1-10)</div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><span>📝</span> Contenido y Seguimiento</h3>
+        </div>
+
+        <label>Resumen de temas principales * (mínimo 50 caracteres)</label>
+        <textarea id="resumen" rows="3" placeholder="Describe brevemente los temas principales..." required oninput="validateResumen()"></textarea>
+        <div class="hint" id="resumenHint">Caracteres: <span id="charCount" style="font-weight:600;">0</span>/50 mínimo</div>
+
+        <label>Compromisos del estudiante</label>
+        <input id="compEst" placeholder="Ej: Entregar tarea, asistir a tutoría...">
+
+        <label>Compromisos del mentor/a</label>
+        <input id="compMentor" placeholder="Ej: Enviar recursos, dar seguimiento...">
+
+        <label>Tipo de seguimiento requerido</label>
+        <select id="seguimiento" onchange="validateSeguimiento()">
+          <option value="">Selecciona si requiere seguimiento especial...</option>
+          <option>🟢 No requiere seguimiento especial</option>
+          <option>🏥 Derivar a Dirección de Entrada/Programa</option>
+          <option>🧠 Derivar a Consejería Emocional</option>
+          <option>💼 Orientación profesional (CVDP)</option>
+          <option>🤖 Derivar a Tec Services</option>
+          <option>💻 Otros servicios</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><span>📎</span> Información Adicional</h3>
+        </div>
+
+        <label>Notas adicionales (confidencial)</label>
+        <textarea id="notas" rows="2" placeholder="Información relevante para el seguimiento..."></textarea>
+
+        <label>Evidencia digital (opcional)</label>
+        <form id="eviForm" onsubmit="return false;">
+          <input type="file" id="evidencia" name="evidencia" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx" onchange="validateFiles(this)">
+        </form>
+        <div class="hint" id="fileHint">Máx. 5 archivos, 25 MB c/u. Solo JPG, PNG, PDF, DOCX</div>
+
+        <button class="btnPrimary" id="guardarBtn" onclick="guardar()">💾 Guardar sesión</button>
+        <div class="hint" style="text-align:center; margin-top:8px;">💡 Tip: Presiona Ctrl+S para guardar rápidamente</div>
+      </div>
+    </div>
+
+    <!-- TAB: HISTORIAL -->
+    <div id="tab-historial" style="display:none;">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><span>📜</span> Mi Historial de Sesiones</h3>
+          <label id="adminScopeToggle" style="display:none; align-items:center; gap:6px; font-size:12px; color:var(--muted);">
+            <input type="checkbox" id="toggleViewAll" onchange="onToggleViewAll(this)" style="vertical-align:middle;"> Ver todos (admin)
+          </label>
+          <button class="btnMini" id="btnRefreshHistory" onclick="refreshHistory(this)">🔄 Actualizar</button>
+          <!-- <button class="btnMini" onclick="exportToExcel(this)">📊 Exportar Excel</button> --> <!-- Eliminar esta línea -->
+          <!-- PARCHE 04: Botón exportar a Excel -->
+          <button class="btnMini" id="btnExportExcel" onclick="exportExcel()">📥 Exportar a Excel</button>
+        </div>
+
+        <table id="histTable">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Estudiante</th>
+              <th>Matrícula</th>
+              <th>Estado</th>
+              <th>Categoría</th>
+              <th>CRM</th>
+            </tr>
+          </thead>
+          <tbody id="histBody">
+            <tr>
+              <td colspan="6" style="text-align:center; color:var(--muted);">
+                <span class="loading"></span> Cargando historial...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="hint" style="margin-top:12px;">
+          📌 Las checkboxes vacías indican sesiones pendientes de documentar en CRM
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: ESTADÍSTICAS -->
+    <div id="tab-stats" style="display:none;">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><span>📊</span> Mis Estadísticas</h3>
+          <button class="btnMini" id="btnRefreshStats" onclick="refreshStats(this)">🔄 Actualizar</button>
+        </div>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-number" id="statTotal">0</div>
+            <div class="stat-label">Total</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number" id="statMonth">0</div>
+            <div class="stat-label">Este mes</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number" id="statWeek">0</div>
+            <div class="stat-label">Esta semana</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number" id="statPending">0</div>
+            <div class="stat-label">Pendientes CRM</div>
+          </div>
+          <div class="stat">
+            <div class="stat-number" id="statRate">0%</div>
+            <div class="stat-label">Tasa CRM</div>
+          </div>
+        </div>
+        <div class="hint" id="statsHint" style="margin-top:8px;">
+          📊 Estadísticas actualizadas en tiempo real desde tus registros
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ========= Estado global
+    let debounceTimer;
+    const APP_COLOR = '#3B82F6';
+    let selectedMood = null;
+    let selectedCategory = null;
+
+    // ========= Sistema de Plantillas (PARCHE 2)
+    // Definición de plantillas
+    const resumenTemplates = [
+      {
+        label: "Seguimiento académico regular",
+        text: "Se revisó el avance académico del estudiante, identificando áreas de oportunidad y fortalezas. Se acordó un plan de acción para mejorar el desempeño en las materias con mayor dificultad."
+      },
+      {
+        label: "Condicionamiento académico",
+        text: "El estudiante se encuentra en condicionamiento académico. Se analizaron las causas y se brindaron recomendaciones para recuperar el promedio. Se establecieron compromisos y se sugirió apoyo adicional."
+      },
+      {
+        label: "Orientación profesional",
+        text: "Se orientó al estudiante sobre opciones profesionales y prácticas. Se discutieron intereses, habilidades y posibles trayectorias. Se acordó investigar más sobre áreas de interés y contactar a servicios de orientación."
+      },
+      {
+        label: "Apoyo emocional",
+        text: "El estudiante expresó inquietudes emocionales relacionadas con el entorno académico y personal. Se brindó escucha activa y se sugirió derivación a consejería emocional si persisten los síntomas."
+      }
+    ];
+
+    // Renderizar menú de plantillas en el DOM
+    window.addEventListener('DOMContentLoaded', () => {
+      const resumenLabel = document.querySelector('label[for="resumen"], label[for=resumen]');
+      if (resumenLabel) {
+        const select = document.createElement('select');
+        select.id = 'resumenTemplateSelect';
+        select.style.marginBottom = '8px';
+        select.innerHTML = '<option value="">📋 Insertar plantilla rápida...</option>' +
+          resumenTemplates.map((tpl, i) => `<option value="${i}">${tpl.label}</option>`).join('');
+        resumenLabel.parentNode.insertBefore(select, resumenLabel.nextSibling);
+
+        select.addEventListener('change', function() {
+          const idx = this.value;
+          if (idx !== '') {
+            document.getElementById('resumen').value = resumenTemplates[idx].text;
+            validateResumen();
+            toast('Plantilla insertada', 'success');
+            this.value = '';
+          }
+        });
+      }
+    });
+
+    // ========= Tema
+    function setTheme(hex, name) {
+      document.documentElement.style.setProperty('--primary', hex || APP_COLOR);
+      document.getElementById('themeName').textContent = name || 'Default';
+    }
+
+    // ========= Toast
+    let toastTimer;
+    function toast(msg, type = 'info') {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast ' + type;
+      el.style.display = 'block';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => el.style.display = 'none', 3500);
+    }
+
+    // ========= Tabs
+    function showTab(id) {
+      ['captura','historial','stats'].forEach(t => {
+        document.getElementById('tab-' + t).style.display = (t === id ? 'block' : 'none');
+        document.getElementById('tab-' + t + '-btn').setAttribute('aria-selected', t === id ? 'true' : 'false');
+      });
+      if (id === 'historial') loadHistory();
+      if (id === 'stats') loadStats();
+    }
+
+    // ========= Chips
+    function toggleChip(evt, isRadio = false) {
+      const chip = evt.target.closest('.chip');
+      if (!chip) return;
+      const wrap = chip.parentElement;
+      if (isRadio) {
+        wrap.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-checked', 'false'));
+        chip.setAttribute('aria-checked', 'true');
+      } else {
+        chip.setAttribute('aria-checked', chip.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
+      }
+    }
+    
+    // ========= Category Selection
+    function selectCategory(evt) {
+      const chip = evt.target.closest('.category-chip');
+      if (!chip) return;
+      
+      // Deselect all categories
+      document.querySelectorAll('.category-chip').forEach(c => c.setAttribute('aria-selected', 'false'));
+      
+      // Select clicked category
+      chip.setAttribute('aria-selected', 'true');
+      selectedCategory = chip.getAttribute('data-value');
+    }
+    
+    document.addEventListener('click', e => {
+      if (e.target.closest('#duracion .chip')) toggleChip(e, true);
+      if (e.target.closest('#dimensiones .chip')) toggleChip(e, false);
+      if (e.target.closest('#categorias .category-chip')) selectCategory(e);
+    });
+
+    // ========= Mood Meter Selection
+    function selectMood(mood, baseRiskValue) {
+      // Deselect all quadrants
+      document.querySelectorAll('.mood-quadrant').forEach(q => q.classList.remove('selected'));
+      // Select clicked quadrant
+      const quadrant = document.querySelector(`.mood-quadrant[data-mood="${mood}"]`);
+      quadrant.classList.add('selected');
+      
+      selectedMood = mood;
+      document.getElementById('moodState').value = mood;
+      
+      // NUEVO: Mostrar control de intensidad
+      document.getElementById('intensityControl').style.display = 'block';
+      document.getElementById('moodIntensity').value = 5;
+      document.getElementById('intensityValue').textContent = 5;
+      
+      // Establecer riesgo base
+      document.getElementById('riesgo').value = baseRiskValue;
+      
+      const moodTexts = {
+        'red': '🔴 Alta energía - Desagradable (Estresado/Ansioso)',
+        'yellow': '🟡 Alta energía - Agradable (Alegre/Motivado)',
+        'blue': '🔵 Baja energía - Desagradable (Triste/Agotado)',
+        'green': '🟢 Baja energía - Agradable (Calmado/Sereno)'
+      };
+      
+      document.getElementById('moodSelected').textContent = moodTexts[mood];
+      updateRiskLevel();
+      validateSeguimiento();
+    }
+
+    // Nueva función para actualizar nivel de riesgo con intensidad
+    function updateRiskLevel() {
+      const mood = document.getElementById('moodState').value;
+      if (!mood) return;
+      
+      const intensity = parseInt(document.getElementById('moodIntensity').value);
+      document.getElementById('intensityValue').textContent = intensity;
+      
+      // Riesgos base por cuadrante
+      const baseRisks = {
+        'red': 7,    // Alta energía - Desagradable
+        'yellow': 3, // Alta energía - Agradable
+        'blue': 6,   // Baja energía - Desagradable
+        'green': 2   // Baja energía - Agradable
+      };
+      
+      const baseRisk = baseRisks[mood] || 5;
+      
+      // Ajustar según intensidad (5 es neutral)
+      const adjustment = (intensity - 5) * 0.4;
+      const finalRisk = Math.round(Math.min(10, Math.max(1, baseRisk + adjustment)));
+      
+      document.getElementById('riesgo').value = finalRisk;
+      document.getElementById('riskValue').innerHTML = `Nivel de atención: <strong>${finalRisk}</strong>`;
+      
+      // Cambiar color según nivel
+      const riskElement = document.getElementById('riskValue');
+      if (finalRisk >= 7) {
+        riskElement.style.color = '#ef4444';
+      } else if (finalRisk >= 4) {
+        riskElement.style.color = '#f59e0b';
+      } else {
+        riskElement.style.color = '#22c55e';
+      }
+    }
+
+    // ========= Lookup matrícula (debounced) con wrapper web
+    const debouncedLookup = () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(lookup, 500); };
+    function lookup() {
+      const m = document.getElementById('matricula').value.trim().toUpperCase();
+      const hint = document.getElementById('matriculaHint');
+      if (!m) return;
+      if (m.length < 8) { hint.className = 'hint warning'; hint.textContent = 'Continúa escribiendo...'; return; }
+
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res && res.found) {
+            document.getElementById('nombre').value = res.nombre || '';
+            document.getElementById('comunidad').value = res.comunidad || '';
+            document.getElementById('programa').value = res.programa || '';
+            setTheme(res.themeHex, res.themeName);
+            hint.className = 'hint success'; hint.textContent = '✅ Estudiante encontrado';
+            toast('Estudiante encontrado: ' + (res.nombre || ''), 'success');
+          } else {
+            ['nombre','comunidad','programa'].forEach(id => document.getElementById(id).value = '');
+            setTheme(APP_COLOR, 'Default');
+            hint.className = 'hint error'; hint.textContent = 'Estudiante no encontrado o sin permisos';
+          }
+        })
+        .withFailureHandler(err => { console.error(err); toast('Error al buscar matrícula', 'error'); })
+        .webLookupStudent(m);
+    }
+
+    // ========= Cargar mentores (wrapper web)
+    function loadMentores() {
+      google.script.run
+        .withSuccessHandler(list => {
+          const sel = document.getElementById('mentor');
+          sel.innerHTML = '<option value="">Selecciona mentor/a...</option>';
+          (list || []).forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = (m.name || '') + '|' + (m.email || '');
+            opt.textContent = m.name || '';
+            sel.appendChild(opt);
+          });
+        })
+        .withFailureHandler(err => { console.error(err); toast('Error cargando mentores', 'error'); })
+        .webGetMentors();
+    }
+
+    // ========= Validaciones
+    function validateResumen() {
+      const resumen = document.getElementById('resumen');
+      const count = resumen.value.length;
+      const counter = document.getElementById('charCount');
+      const hint = document.getElementById('resumenHint');
+      counter.textContent = count;
+      if (count >= 50) { counter.style.color = 'var(--ok)'; hint.className = 'hint success'; }
+      else { counter.style.color = 'var(--err)'; hint.className = 'hint error'; }
+    }
+    
+    function validateSeguimiento() {
+      const seg = document.getElementById('seguimiento').value;
+      const risk = Number(document.getElementById('riesgo').value);
+      if (seg.includes('Consejería') && risk < 4) toast('⚠️ Para Consejería, el nivel debe ser ≥ 4', 'warning');
+    }
+    
+    function validateFiles(input) {
+      const files = input.files;
+      const hint = document.getElementById('fileHint');
+      const maxSize = 25 * 1024 * 1024;
+      const allowed = /\.(jpe?g|png|pdf|docx?)$/i;
+
+      if (files.length > 5) { hint.className = 'hint error'; hint.textContent = '❌ Máximo 5 archivos permitidos'; input.value = ''; return; }
+      for (let f of files) {
+        if (f.size > maxSize) { hint.className = 'hint error'; hint.textContent = `❌ ${f.name} excede 25MB`; input.value = ''; return; }
+        if (!allowed.test(f.name)) { hint.className = 'hint error'; hint.textContent = `❌ ${f.name} - Formato no permitido`; input.value = ''; return; }
+      }
+      hint.className = 'hint success'; hint.textContent = `✅ ${files.length} archivo(s) listos para subir`;
+    }
+
+    // ========= Helpers
+    function readChipsRadio(id) {
+      const sel = document.querySelector(`#${id} .chip[aria-checked="true"]`);
+      return sel ? sel.getAttribute('data-key') : '';
+    }
+    function readChipsMulti(id) {
+      return Array.from(document.querySelectorAll(`#${id} .chip[aria-checked="true"]`)).map(c => c.getAttribute('data-val'));
+    }
+    const v = id => document.getElementById(id).value.trim();
+
+    function validar(payload) {
+      if (!payload.matricula) { toast('❌ Ingresa la matrícula', 'error'); document.getElementById('matricula').focus(); return false; }
+      if (!payload.mentor) { toast('❌ Selecciona mentor/a', 'error'); return false; }
+      if (!payload.categoria) { toast('❌ Selecciona una categoría', 'error'); return false; }
+      if (!payload.tipo) { toast('❌ Selecciona tipo de sesión', 'error'); return false; }
+      if (!payload.duracion) { toast('❌ Selecciona duración', 'error'); return false; }
+      if (!payload.fecha) { toast('❌ Ingresa fecha de sesión', 'error'); return false; }
+      if (!payload.moodState) { toast('❌ Selecciona el estado emocional del estudiante', 'error'); return false; }
+      if (!payload.riesgo || payload.riesgo < 1 || payload.riesgo > 10) { toast('❌ Nivel debe ser entre 1 y 10', 'error'); return false; }
+      if ((payload.resumen || '').length < 50) { toast('❌ El resumen debe tener mínimo 50 caracteres', 'error'); document.getElementById('resumen').focus(); return false; }
+      if (payload.seguimiento && payload.seguimiento.includes('Consejería') && Number(payload.riesgo) < 4) { toast('⚠️ Para derivación a Consejería, el nivel debe ser ≥ 4', 'warning'); return false; }
+      return true;
+    }
+
+    // ========= Guardar (wrappers web)
+    async function guardar() {
+      const btn = document.getElementById('guardarBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading"></span> Guardando...';
+
+      const payload = {
+        mentor: v('mentor'), 
+        matricula: v('matricula'), 
+        nombre: v('nombre'),
+        comunidad: v('comunidad'), 
+        programa: v('programa'), 
+        categoria: selectedCategory,
+        tipo: v('tipo'),
+        duracion: readChipsRadio('duracion'), 
+        riesgo: document.getElementById('riesgo').value,
+        moodState: document.getElementById('moodState').value,
+        dimensiones: readChipsMulti('dimensiones'), 
+        fecha: v('fecha'), 
+        proxima: v('proxima'),
+        resumen: v('resumen'), 
+        compEst: v('compEst'), 
+        compMentor: v('compMentor'),
+        seguimiento: v('seguimiento'), 
+        notas: v('notas'), 
+        evidencias: []
+      };
+
+      if (!validar(payload)) { btn.disabled = false; btn.innerHTML = '💾 Guardar sesión'; return; }
+
+      const files = document.getElementById('evidencia').files;
+      if (files && files.length) {
+        toast('📤 Subiendo evidencias...', 'info');
+        const form = document.getElementById('eviForm');
+        await new Promise(resolve => {
+          google.script.run
+            .withSuccessHandler(res => {
+              if (res && res.ok) { payload.evidencias = res.links || []; toast('✅ Evidencias subidas', 'success'); }
+              resolve();
+            })
+            .withFailureHandler(err => { console.error(err); toast('⚠️ Error al subir evidencia', 'warning'); resolve(); })
+            .webUploadEvidence(form);
+        });
+      }
+
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res && res.ok) {
+            toast('✅ Sesión guardada - Email enviado', 'success');
+            limpiarFormulario();
+            if (document.getElementById('tab-historial').style.display !== 'none') loadHistory();
+          } else {
+            toast('❌ No se pudo guardar', 'error');
+          }
+          btn.disabled = false; btn.innerHTML = '💾 Guardar sesión';
+        })
+        .withFailureHandler(err => {
+          console.error(err);
+          toast(err?.message || '❌ Error al guardar', 'error');
+          btn.disabled = false; btn.innerHTML = '💾 Guardar sesión';
+        })
+        .webSaveSession(payload);
+    }
+
+    function limpiarFormulario() {
+      ['matricula','nombre','comunidad','programa','tipo','fecha','proxima','resumen','compEst','compMentor','seguimiento','notas'].forEach(id => document.getElementById(id).value = '');
+      document.querySelectorAll('.chip[aria-checked="true"]').forEach(c => c.setAttribute('aria-checked', 'false'));
+      document.querySelectorAll('.category-chip[aria-selected="true"]').forEach(c => c.setAttribute('aria-selected', 'false'));
+      document.querySelectorAll('.mood-quadrant.selected').forEach(q => q.classList.remove('selected'));
+      document.getElementById('evidencia').value = '';
+      document.getElementById('charCount').textContent = '0';
+      document.getElementById('riesgo').value = 5;
+      document.getElementById('moodState').value = '';
+      document.getElementById('moodSelected').textContent = 'Selecciona el estado emocional observado';
+      document.getElementById('riskValue').innerHTML = 'Nivel de atención: <strong>5</strong>';
+      selectedMood = null;
+      selectedCategory = null;
+      setTheme(APP_COLOR, 'Default');
+    }
+
+    // ========= Historial (wrapper web)
+    let IS_ADMIN = false;
+    let VIEW_ALL = false;
+
+    function loadHistory(done) {
+      const tbody = document.getElementById('histBody');
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;"><span class="loading"></span> Cargando...</td></tr>';
+
+      google.script.run
+        .withSuccessHandler(rows => {
+          tbody.innerHTML = '';
+          if (!rows || rows.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--muted);">No hay sesiones registradas</td></tr>';
+            done && done(true);
+            return;
+          }
+          rows.forEach(r => {
+            const tr = document.createElement('tr');
+            const moodColors = {
+              'red': '#e74c3c',
+              'yellow': '#f1c40f',
+              'blue': '#3498db',
+              'green': '#27ae60'
+            };
+            const moodIcons = {
+              'red': '🔴',
+              'yellow': '🟡',
+              'blue': '🔵',
+              'green': '🟢'
+            };
+            const moodColor = moodColors[r.moodState] || '#999';
+            const moodIcon = moodIcons[r.moodState] || '⚪';
+            
+            // Checkbox starts unchecked by default
+            const isChecked = r.crmSaved === 'Sí' ? 'checked' : '';
+            
+            tr.innerHTML = `
+              <td>${r.fecha ? new Date(r.fecha).toLocaleDateString('es-MX') : ''}</td>
+              <td>${r.nombre || ''}</td>
+              <td>${r.matricula || ''}</td>
+              <td style="color:${moodColor}">${moodIcon}</td>
+              <td style="font-size:11px;">${r.categoria || 'Sin categoría'}</td>
+              <td>
+                <input type="checkbox"
+                       ${isChecked}
+                       onchange="toggleCRM('${r.sessionId}', this.checked)"
+                       style="width:18px;height:18px;cursor:pointer;"
+                       title="${isChecked ? 'Ya documentado en CRM' : 'Marcar como documentado en CRM'}">
+              </td>`;
+            tbody.appendChild(tr);
+          });
+          done && done(true);
+        })
+        .withFailureHandler(err => {
+          console.error(err);
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--err);">Error al cargar historial</td></tr>';
+          done && done(false);
+        })
+        .webGetHistory(VIEW_ALL === true);
+    }
+
+    function refreshHistory(btn) {
+      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="loading"></span> Actualizando...'; }
+      loadHistory(ok => {
+        if (btn) { btn.disabled = false; btn.textContent = '🔄 Actualizar'; }
+        if (!ok) toast('No se pudo cargar. Intenta de nuevo.', 'warning');
+      });
+    }
+
+    // ========= Estadísticas
+    function loadStats(done) {
+      google.script.run
+        .withSuccessHandler(stats => {
+          if (!stats) { done && done(false); return; }
+          document.getElementById('statTotal').textContent = stats.totalSessions || 0;
+          document.getElementById('statMonth').textContent = stats.weeklyAvg ? stats.weeklyAvg * 4 : 0;
+          document.getElementById('statWeek').textContent = stats.weekSessions || 0;
+          document.getElementById('statPending').textContent = stats.pendingCRM || 0;
+          document.getElementById('statRate').textContent = (stats.crmRate || 0) + '%';
+          done && done(true);
+        })
+        .withFailureHandler(err => {
+          console.error(err);
+          toast('Error al cargar estadísticas', 'error');
+          done && done(false);
+        })
+        .webGetStats();
+    }
+
+    function refreshStats(btn) {
+      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="loading"></span> Actualizando...'; }
+      loadStats(ok => {
+        if (btn) { btn.disabled = false; btn.textContent = '🔄 Actualizar'; }
+        if (!ok) toast('No se pudo cargar. Intenta de nuevo.', 'warning');
+      });
+    }
+
+    // ========= CRM toggle (wrapper web)
+    function toggleCRM(sessionId, checked) {
+      google.script.run
+        .withSuccessHandler(() => {
+          toast(checked ? '✅ Marcado en CRM' : '📋 Pendiente en CRM');
+          loadStats();
+        })
+        .withFailureHandler(err => { console.error(err); toast('❌ Error al actualizar', 'error'); })
+        .webSetCrmStatus(sessionId, checked);
+    }
+
+    // ========= Atajos
+    document.addEventListener('keydown', e => {
+      if (e.ctrlKey && e.key === 's') { e.preventDefault(); if (!document.getElementById('guardarBtn').disabled) guardar(); }
+      if (e.ctrlKey && e.key === 'f') { e.preventDefault(); document.getElementById('matricula').focus(); }
+      if (e.ctrlKey && e.key === 'l') { e.preventDefault(); if (confirm('¿Limpiar el formulario?')) limpiarFormulario(); }
+    });
+
+    // ========= Init
+    window.onload = function() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('fecha').value = today;
+      setTheme(APP_COLOR, 'Default');
+      document.getElementById('matricula').focus();
+      loadMentores();
+      // Mostrar interruptor admin si aplica
+      google.script.run
+        .withSuccessHandler(info => {
+          if (info && info.authorized && info.role === 'Administrador') {
+            IS_ADMIN = true;
+            const el = document.getElementById('adminScopeToggle');
+            if (el) el.style.display = 'inline-flex';
+          }
+        })
+        .withFailureHandler(_ => {})
+        .webGetAccessInfo();
+
+      // Aplicar tema por comunidad del mentor autenticado
+      google.script.run
+        .withSuccessHandler(t => { if (t && t.hex) setTheme(t.hex, t.name || ''); })
+        .withFailureHandler(_ => {})
+        .webGetMyTheme();
+    };
+
+    // ========= PARCHE 04: Función para exportar a Excel
+    function exportExcel() {
+      const btn = document.getElementById('btnExportExcel');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading"></span> Generando...';
+      }
+      
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res && res.ok) {
+            // Crear modal con opciones
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+              position: fixed;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background: rgba(0,0,0,0.5);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              z-index: 9999;
+            `;
+            
+            modal.innerHTML = `
+              <div style="background:white;border-radius:12px;padding:24px;max-width:400px;width:90%;">
+                <h3 style="margin-top:0;color:var(--text);">✅ Excel Generado</h3>
+                <p style="color:var(--muted);margin:12px 0;">
+                  <strong>${res.fileName}</strong><br>
+                  ${res.sessions} sesiones exportadas
+                </p>
+                <div style="display:flex;gap:8px;margin-top:20px;">
+                  <button onclick="window.open('${res.downloadUrl}', '_blank');document.body.removeChild(this.closest('[style*=fixed]'))" 
+                          style="flex:1;padding:10px;background:var(--primary);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600;">
+                    💾 Descargar Excel
+                  </button>
+                  <button onclick="window.open('${res.viewUrl}', '_blank');document.body.removeChild(this.closest('[style*=fixed]'))" 
+                          style="flex:1;padding:10px;background:var(--chip);color:var(--text);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-weight:600;">
+                    👁️ Ver en Drive
+                  </button>
+                </div>
+                <button onclick="document.body.removeChild(this.closest('[style*=fixed]'))" 
+                        style="width:100%;margin-top:8px;padding:8px;background:transparent;border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--muted);">
+                  Cerrar
+                </button>
+              </div>
+            `;
+            
+            document.body.appendChild(modal);
+            toast('✅ Excel generado exitosamente', 'success');
+          } else {
+            toast(res.message || 'Error al generar Excel', 'error');
+          }
+          
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '📥 Exportar a Excel';
+          }
+        })
+        .withFailureHandler(err => {
+          console.error(err);
+          toast('Error al generar Excel', 'error');
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '📥 Exportar a Excel';
+          }
+        })
+        .webExportToExcel(VIEW_ALL === true);
+    }
+
+    function onToggleViewAll(cb) {
+      if (!IS_ADMIN) { cb.checked = false; return; }
+      VIEW_ALL = !!cb.checked;
+      refreshHistory(document.getElementById('btnRefreshHistory'));
+    }
+  </script>
+</body>
+</html>
